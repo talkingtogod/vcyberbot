@@ -466,7 +466,7 @@
             
             <form id="followForm">
                 <div class="form-group">
-                    <label for="username" class="form-label">Roblox Username</label>
+                    <label for="username" class="form-label">Group ID</label>
                     <input type="text" id="username" name="username" class="form-input" placeholder="Enter the target username" required>
                 </div>
                 
@@ -568,7 +568,7 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             
             try {
-                const response = await fetch(`https://cyberbotting.lol/api/addgroupmembers/${username}/${amount}`, {
+                const response = await fetch(`https://cyberbotting.lol/api/addgroupmembers/${groupid}/${amount}`, {
                     method: 'GET'
                 });
                 
