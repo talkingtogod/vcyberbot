@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cool Captcha</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart CAPTCHA</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
     * {
       margin: 0;
       padding: 0;
@@ -15,126 +16,180 @@
     }
     body {
       height: 100vh;
-      background: #f3f4f6;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: linear-gradient(to right, #667eea, #764ba2);
     }
     .container {
       background: #fff;
-      padding: 25px 30px;
+      padding: 20px 25px;
       border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      width: 320px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      max-width: 350px;
+      width: 100%;
     }
-    h2 {
+    header {
       text-align: center;
-      color: #111827;
-      margin-bottom: 20px;
+      font-size: 20px;
       font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
     }
-    .captcha-box {
+    .input_field {
       position: relative;
-      background: #e5e7eb;
-      border: 2px dashed #4f46e5;
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 24px;
-      letter-spacing: 4px;
-      font-family: 'Courier New', monospace;
+      margin-top: 15px;
+    }
+    .captcha_display {
       user-select: none;
-      color: #4f46e5;
-      margin-bottom: 15px;
-      pointer-events: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      background: #f1f1f1;
+      padding: 12px;
+      text-align: center;
+      font-size: 22px;
+      letter-spacing: 4px;
+      font-weight: bold;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      color: #222;
     }
-    .captcha-box::selection {
-      background: none;
+    .captcha_display.math {
+      letter-spacing: normal;
     }
-    .captcha-box::before {
-      content: '';
+    .captcha_display.color-match {
+      background: #fdf0f0;
+    }
+    .refresh_button {
       position: absolute;
-      inset: 0;
-      cursor: not-allowed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #4F46E5;
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
     }
     input[type="text"] {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 16px;
-      margin-bottom: 15px;
-    }
-    button {
-      width: 100%;
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-    button:hover {
-      background: #6366f1;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 12px;
     }
     .message {
-      margin-top: 10px;
+      margin: 12px 0;
+      display: none;
       text-align: center;
-      font-weight: 500;
     }
-    .message.success {
-      color: #22c55e;
+    .message.active {
+      display: block;
     }
-    .message.error {
-      color: #ef4444;
+    .submit_button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      background: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .submit_button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>CAPTCHA Verification</h2>
-    <div class="captcha-box" id="captchaBox" oncopy="return false" oncontextmenu="return false"></div>
-    <input type="text" id="captchaInput" placeholder="Enter the captcha" />
-    <button id="submitBtn">Verify</button>
+    <header>Smart CAPTCHA</header>
+    <div class="input_field">
+      <div id="captcha" class="captcha_display">Loading...</div>
+      <button class="refresh_button" onclick="initCaptcha()" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
+    </div>
+    <div class="input_field">
+      <input type="text" id="userInput" placeholder="Enter captcha" onkeyup="toggleSubmit()" />
+    </div>
     <div class="message" id="message"></div>
+    <button class="submit_button" id="submitBtn" disabled onclick="validateCaptcha()">Submit</button>
   </div>
 
   <script>
-    const captchaBox = document.getElementById("captchaBox");
-    const captchaInput = document.getElementById("captchaInput");
-    const submitBtn = document.getElementById("submitBtn");
+    const captchaDisplay = document.getElementById("captcha");
+    const userInput = document.getElementById("userInput");
     const message = document.getElementById("message");
+    const submitBtn = document.getElementById("submitBtn");
 
-    let currentCaptcha = "";
+    let currentAnswer = "";
 
-    function generateCaptcha() {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-      currentCaptcha = "";
-      for (let i = 0; i < 6; i++) {
-        currentCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
+    const generateTextCaptcha = () => {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+      let result = "";
+      for (let i = 0; i < 5; i++) {
+        result += chars[Math.floor(Math.random() * chars.length)];
       }
-      captchaBox.textContent = currentCaptcha.split("").join(" ");
-    }
+      captchaDisplay.textContent = result.split("").join(" ");
+      captchaDisplay.className = "captcha_display";
+      currentAnswer = result;
+    };
 
-    submitBtn.addEventListener("click", () => {
-      const userInput = captchaInput.value.replace(/\s+/g, "");
-      const target = currentCaptcha;
-      if (userInput === target) {
-        message.textContent = "Captcha correct! Redirecting...";
-        message.className = "message success";
+    const generateMathCaptcha = () => {
+      const a = Math.floor(Math.random() * 10) + 1;
+      const b = Math.floor(Math.random() * 10) + 1;
+      captchaDisplay.textContent = `${a} + ${b} = ?`;
+      captchaDisplay.className = "captcha_display math";
+      currentAnswer = (a + b).toString();
+    };
+
+    const generateColorCaptcha = () => {
+      const colors = ["Red", "Green", "Blue", "Yellow", "Purple"];
+      const correct = colors[Math.floor(Math.random() * colors.length)];
+      captchaDisplay.innerHTML = `<b style="color:${correct.toLowerCase()}">${correct}</b>`;
+      captchaDisplay.className = "captcha_display color-match";
+      currentAnswer = correct.toLowerCase();
+    };
+
+    const captchaTypes = [generateTextCaptcha, generateMathCaptcha, generateColorCaptcha];
+
+    const initCaptcha = () => {
+      const type = captchaTypes[Math.floor(Math.random() * captchaTypes.length)];
+      type();
+      userInput.value = "";
+      message.classList.remove("active");
+      message.textContent = "";
+      submitBtn.disabled = true;
+    };
+
+    const toggleSubmit = () => {
+      submitBtn.disabled = userInput.value.trim() === "";
+    };
+
+    const validateCaptcha = () => {
+      if (userInput.value.trim().toLowerCase() === currentAnswer.toLowerCase()) {
+        message.textContent = "✅ CAPTCHA correct! Redirecting...";
+        message.style.color = "#16a34a";
+        message.classList.add("active");
         setTimeout(() => window.location.href = "home.html", 1000);
       } else {
-        message.textContent = "Incorrect captcha. Try again.";
-        message.className = "message error";
-        generateCaptcha();
-        captchaInput.value = "";
+        message.textContent = "❌ CAPTCHA incorrect. Try again.";
+        message.style.color = "#dc2626";
+        message.classList.add("active");
+        initCaptcha();
       }
-    });
-    captchaBox.addEventListener("mousedown", e => e.preventDefault());
-    captchaBox.addEventListener("copy", e => e.preventDefault());
+    };
 
-    generateCaptcha();
+    // Disable copy/cut from CAPTCHA
+    captchaDisplay.addEventListener("copy", e => e.preventDefault());
+    captchaDisplay.addEventListener("cut", e => e.preventDefault());
+    captchaDisplay.addEventListener("contextmenu", e => e.preventDefault());
+
+    // Init on load
+    window.onload = initCaptcha;
   </script>
 </body>
 </html>
