@@ -783,7 +783,7 @@
     </style>
 </head>
 <body>
- <form id="captcha-form" action="/verify-captcha" method="POST">
+ <form id="captcha-form" action="/api/verify-captcha" method="POST">
   <div class="g-recaptcha" data-sitekey="6LeixkgrAAAAAMNi4PVFbzufV_NYgfpjPzA0z5mp"></div>
   <br>
   <button type="submit">Verify</button>
@@ -1070,7 +1070,7 @@
 
 
 
-        document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("captcha-form");
 
     form.addEventListener("submit", function (e) {
@@ -1081,6 +1081,7 @@
         e.preventDefault();
         alert("⚠️ please complete the CAPTCHA to continue.");
       }
+      });
     });
 
         function handleScrollAnimations() {
