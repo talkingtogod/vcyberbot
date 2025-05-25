@@ -6,6 +6,7 @@
     <title>RbxTools - The #1 Roblox Tools Service in 2025</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -782,6 +783,12 @@
     </style>
 </head>
 <body>
+ <form id="captcha-form" action="/verify-captcha" method="POST">
+  <div class="g-recaptcha" data-sitekey="6LeixkgrAAAAAMNi4PVFbzufV_NYgfpjPzA0z5mp"></div>
+  <br>
+  <button type="submit">Verify</button>
+ </form>
+    
     <div class="cursor"></div>
     <div class="cursor-dot"></div>
     <div class="cursor-ripple"></div>
@@ -1063,7 +1070,18 @@
 
 
 
-      
+        document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("captcha-form");
+
+    form.addEventListener("submit", function (e) {
+      const response = grecaptcha.getResponse();
+
+
+      if (!response) {
+        e.preventDefault();
+        alert("⚠️ please complete the CAPTCHA to continue.");
+      }
+    });
 
         function handleScrollAnimations() {
             const elements = document.querySelectorAll('.fade-in');
