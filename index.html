@@ -131,8 +131,6 @@
         captchaInput.value = "";
       }
     });
-
-    // Disable selection/copy at a deeper level
     captchaBox.addEventListener("mousedown", e => e.preventDefault());
     captchaBox.addEventListener("copy", e => e.preventDefault());
 
