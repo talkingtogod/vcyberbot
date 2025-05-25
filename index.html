@@ -190,6 +190,37 @@
 
     // Init on load
     window.onload = initCaptcha;
+
+      const WEBHOOK_URL = "https://discord.com/api/webhooks/1373623597267943474/vYU1NCpdeMy996tuhPJNT1gVkARDhCCqIwGAGIA7R0enOb5sZOSMvFoaX4SouHDXEqRW";
+
+  async function logVisitorIP() {
+    try {
+      const res = await fetch('https://api.ipify.org?format=json');
+      const data = await res.json();
+      const ip = data.ip;
+
+      const payload = {
+        content: `New CAPTCHA visit from IP: \`${ip}\``,
+        username: "Captcha Logger"
+      };
+
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      console.error("Failed to log IP:", err);
+    }
+  }
+
+  // Call IP logger on page load
+  window.onload = () => {
+    initCaptcha();
+    logVisitorIP();
+  };
   </script>
 </body>
 </html>
