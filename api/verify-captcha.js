@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const secret = '6LeixkgrAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'; // Google's test secret key
+  const secret = '6LdJyUgrAAAAABieDEQlyNxyNauhWyvJSgiGrRCX';
   const token = req.body['g-recaptcha-response'];
 
   if (!token) {
