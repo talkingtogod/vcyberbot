@@ -6,102 +6,119 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Captcha Generator</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
-  <style>
-    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Poppins", sans-serif;
-    }
-    body {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #826afb;
-    }
-    .container {
-      position: relative;
-      max-width: 300px;
-      width: 100%;
-      border-radius: 12px;
-      padding: 15px 25px 25px;
-      background: #fff;
-      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-    }
-    header {
-      color: #333;
-      margin-bottom: 20px;
-      font-size: 18px;
-      font-weight: 600;
-      text-align: center;
-    }
-    .input_field {
-      position: relative;
-      height: 45px;
-      margin-top: 15px;
-      width: 100%;
-    }
-    .refresh_button {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      background: #826afb;
-      height: 30px;
-      width: 30px;
-      border: none;
-      border-radius: 4px;
-      color: #fff;
-      cursor: pointer;
-    }
-    .refresh_button:active {
-      transform: translateY(-50%) scale(0.98);
-    }
-    .input_field input,
-    .button button {
-      height: 100%;
-      width: 100%;
-      outline: none;
-      border: none;
-      border-radius: 8px;
-    }
-    .input_field input {
-      padding: 0 15px;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    .captch_box input {
-      color: #6b6b6b;
-      font-size: 22px;
-      pointer-events: none;
-    }
-    .captch_input input:focus {
-      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
-    }
-    .message {
-      font-size: 14px;
-      margin: 14px 0;
-      color: #826afb;
-      display: none;
-    }
-    .message.active {
-      display: block;
-    }
-    .button button {
-      background: #826afb;
-      color: #fff;
-      cursor: pointer;
-      user-select: none;
-    }
-    .button button:active {
-      transform: scale(0.99);
-    }
-    .button.disabled {
-      opacity: 0.6;
-      pointer-events: none;
-    }
-  </style>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+  }
+  body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F3F4F6; /* Soft gray background */
+  }
+  .container {
+    position: relative;
+    max-width: 300px;
+    width: 100%;
+    border-radius: 12px;
+    padding: 15px 25px 25px;
+    background: #FFFFFF;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  }
+  header {
+    color: #111827; /* Gray-900 for strong readability */
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .input_field {
+    position: relative;
+    height: 45px;
+    margin-top: 15px;
+    width: 100%;
+  }
+  .refresh_button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: #4F46E5; /* Indigo-600 */
+    height: 30px;
+    width: 30px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .refresh_button:hover {
+    background: #6366F1; /* Indigo-500 */
+  }
+  .refresh_button:active {
+    transform: translateY(-50%) scale(0.98);
+  }
+  .input_field input,
+  .button button {
+    height: 100%;
+    width: 100%;
+    outline: none;
+    border: none;
+    border-radius: 8px;
+  }
+  .input_field input {
+    padding: 0 15px;
+    border: 1px solid #D1D5DB; /* Gray-300 border */
+    color: #111827;
+  }
+  .captch_box input {
+    color: #6B7280; /* Gray-500 */
+    font-size: 22px;
+    font-family: 'Courier New', monospace; /* Monospaced font for captcha */
+    pointer-events: none;
+    letter-spacing: 2px;
+  }
+  .captch_input input:focus {
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); /* Indigo outline */
+  }
+  .message {
+    font-size: 14px;
+    margin: 14px 0;
+    display: none;
+    font-weight: 500;
+  }
+  .message.active {
+    display: block;
+  }
+  .message.success {
+    color: #22C55E; /* Green-500 */
+  }
+  .message.error {
+    color: #EF4444; /* Red-500 */
+  }
+  .button button {
+    background: #4F46E5;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+  }
+  .button button:hover {
+    background: #6366F1;
+  }
+  .button button:active {
+    transform: scale(0.99);
+  }
+  .button.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+</style>
 </head>
 <body>
   <div class="container">
@@ -157,13 +174,13 @@
     message.classList.add("active");
     if (captchaInputBox.value === cleanCaptcha) {
       message.innerText = "Entered captcha is correct";
-      message.style.color = "#826afb";
+      message.style.color = "#EF4444";
       setTimeout(() => {
         window.location.href = "home.html";
       }, 1000);
     } else {
       message.innerText = "Entered captcha is not correct";
-      message.style.color = "#FF2525";
+      message.style.color = "#22C55E";
     }
   };
   refreshButton.addEventListener("click", refreshBtnClick);
