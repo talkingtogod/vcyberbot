@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: 'https://rbxtools.store'
+  origin: ['https://rbxtools.store', 'https://vcyberbot.vercel.app']
 }));
 app.use(bodyParser.json());
 
