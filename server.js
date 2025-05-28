@@ -36,7 +36,7 @@ function ensureUser(userId, callback) {
 }
 
 // GET /api/gems/:userId
-app.get('/api/gems/:userId', (req, res) => {
+app.get('/gems/:userId', (req, res) => {
     const userId = req.params.userId;
     ensureUser(userId, () => {
         db.get(`SELECT gems FROM users WHERE id = ?`, [userId], (err, row) => {
