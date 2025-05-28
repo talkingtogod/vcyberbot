@@ -435,6 +435,126 @@
         .submit-btn, .back-btn, .form-input {
             cursor: none;
         }
+
+        .gem-bank {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 1001;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.gem-bank:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+}
+
+.gem-icon {
+    color: var(--accent);
+    font-size: 1.2rem;
+}
+
+.gem-balance {
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.gem-purchase-section {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 3rem;
+    margin: 4rem 0;
+    text-align: center;
+}
+
+.gem-packages {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.gem-package {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.gem-package:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+    box-shadow: 0 15px 30px rgba(99, 102, 241, 0.2);
+}
+
+.gem-amount {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+.gem-price {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.notification {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    z-index: 1002;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.notification.error {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+@media (max-width: 768px) {
+    .gem-bank {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin: 1rem;
+        justify-content: center;
+    }
+    
+    .gem-packages {
+        grid-template-columns: 1fr;
+    }
+}
     </style>
 </head>
 <body>
@@ -445,6 +565,15 @@
         <div class="mesh-gradient"></div>
         <div class="particles" id="particles"></div>
     </div>
+
+    <div class="gem-bank" id="gemBank">
+    <i class="fas fa-gem gem-icon"></i>
+    <span class="gem-balance" id="gemBalance">Loading...</span>
+</div>
+
+<div class="notification" id="notification">
+    <div id="notificationText"></div>
+</div>
 
     <nav>
         <div class="nav-container">
@@ -599,6 +728,179 @@
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
         });
+
+
+
+        class GemSystem {
+    constructor() {
+        this.userId = this.getUserId();
+        this.baseUrl = 'https://rbxtools.store/api';
+        this.init();
+    }
+
+    getUserId() {
+        let userId = localStorage.getItem('rbxtools_user_id');
+        if (!userId) {
+            userId = 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+            localStorage.setItem('rbxtools_user_id', userId);
+        }
+        return userId;
+    }
+
+    async init() {
+        await this.updateGemBalance();
+        setInterval(() => this.updateGemBalance(), 30000);
+    }
+
+    async updateGemBalance() {
+        try {
+            const response = await fetch(`${this.baseUrl}/gems/${this.userId}`);
+            const data = await response.json();
+            const balance = data.balance || 0;
+            
+            const gemBalanceEl = document.getElementById('gemBalance');
+            if (gemBalanceEl) {
+                gemBalanceEl.textContent = `${balance.toLocaleString()} gems`;
+            }
+        } catch (error) {
+            console.error('Error fetching gem balance:', error);
+            const gemBalanceEl = document.getElementById('gemBalance');
+            if (gemBalanceEl) {
+                gemBalanceEl.textContent = '0 gems';
+            }
+        }
+    }
+
+    async purchaseGems(amount, price) {
+        try {
+            const response = await fetch(`${this.baseUrl}/purchase`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: this.userId,
+                    gems: amount,
+                    price: price
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.invoice_url) {
+                window.open(data.invoice_url, '_blank');
+                this.showNotification('Payment window opened! Complete payment to receive gems.', 'success');
+            } else {
+                throw new Error('No invoice URL received');
+            }
+        } catch (error) {
+            console.error('Error purchasing gems:', error);
+            this.showNotification('Error creating payment. Please try again.', 'error');
+        }
+    }
+
+    async spendGems(amount, type) {
+        try {
+            const balanceResponse = await fetch(`${this.baseUrl}/gems/${this.userId}`);
+            const balanceData = await balanceResponse.json();
+            const currentBalance = balanceData.balance || 0;
+
+            if (currentBalance < amount) {
+                this.showNotification(`Insufficient gems! You need ${amount} gems but only have ${currentBalance}.`, 'error');
+                return false;
+            }
+
+            const spendResponse = await fetch(`${this.baseUrl}/spend`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: this.userId,
+                    amount: amount,
+                    type: type
+                })
+            });
+
+            const spendData = await spendResponse.json();
+            
+            if (spendData.success) {
+                this.showNotification(`Successfully spent ${amount} gems on ${type}!`, 'success');
+                await this.updateGemBalance();
+                return true;
+            } else {
+                throw new Error(spendData.error || 'Failed to spend gems');
+            }
+        } catch (error) {
+            console.error('Error spending gems:', error);
+            this.showNotification('Error processing purchase. Please try again.', 'error');
+            return false;
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        
+        if (notification && notificationText) {
+            notificationText.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+    }
+}
+
+const gemSystem = new GemSystem();
+
+function purchaseGems(amount, price) {
+    gemSystem.purchaseGems(amount, price);
+}
+
+async function handleGemPurchase(event, type) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const amount = parseInt(formData.get('amount')) || 0;
+    
+    if (amount <= 0) {
+        gemSystem.showNotification('Please enter a valid amount.', 'error');
+        return;
+    }
+    
+    const submitBtn = form.querySelector('.submit-btn') || form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Processing...';
+    submitBtn.disabled = true;
+    
+    try {
+        const success = await gemSystem.spendGems(amount, type);
+        
+        if (success) {
+            gemSystem.showNotification(`Order submitted! Processing ${amount} ${type}...`, 'success');
+            form.reset();
+        }
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const followForm = document.querySelector('form');
+    if (followForm && window.location.pathname.includes('follow')) {
+        followForm.addEventListener('submit', (e) => handleGemPurchase(e, 'followers'));
+    }
+    
+    const membersForm = document.querySelector('form');
+    if (membersForm && (window.location.pathname.includes('member') || window.location.pathname.includes('group'))) {
+        membersForm.addEventListener('submit', (e) => handleGemPurchase(e, 'members'));
+    }
+});
     </script>
 </body>
 </html>
