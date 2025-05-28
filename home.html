@@ -35,6 +35,18 @@
             cursor: none;
         }
 
+        .gem-bank {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  padding: 0.8rem 1.5rem;
+  border-radius: 20px;
+  font-weight: bold;
+  backdrop-filter: blur(20px);
+}
+
         .cursor {
             position: fixed;
             width: 20px;
@@ -791,6 +803,11 @@
         <div class="particles" id="particles"></div>
     </div>
 
+    <div class="gem-bank">
+  <i class="fas fa-gem"></i> Gems: <span id="gemBalance">Loading...</span>
+</div>
+
+
     <nav>
         <div class="nav-container">
             <div class="logo">RbxTools</div>
@@ -814,6 +831,17 @@
             </div>
         </div>
     </section>
+
+<section class="section fade-in" id="buy-gems">
+  <h2 class="section-title">Buy Gems</h2>
+  <div class="btn-group">
+    <button onclick="buyGems(100)">Buy 100 Gems ($0.50)</button>
+    <button onclick="buyGems(1000)">Buy 1,000 Gems ($5.00)</button>
+    <button onclick="buyGems(10000)">Buy 10,000 Gems ($50.00)</button>
+    <button onclick="buyGems(100000)">Buy 100,000 Gems ($500.00)</button>
+  </div>
+</section>
+
 
   <section class="section fade-in">
         <h2 class="section-title">Why Choose RbxTools?</h2>
@@ -1051,6 +1079,35 @@
             currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
             updateCarousel();
         }
+
+        const userId = localStorage.getItem('rbx_user_id') || (() => {
+  const id = crypto.randomUUID();
+  localStorage.setItem('rbx_user_id', id);
+  return id;
+})();
+
+function fetchBalance() {
+  fetch(`https://rbxtools.store/api/gems/${userId}`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('gemBalance').textContent = data.balance;
+    });
+}
+
+function buyGems(amount) {
+  fetch('https://rbxtools.store/api/purchase', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, amount })
+  })
+  .then(res => res.json())
+  .then(data => {
+    window.open(data.invoice_url, '_blank');
+  });
+}
+
+fetchBalance();
+
 
         document.getElementById('next-btn').addEventListener('click', nextSlide);
         document.getElementById('prev-btn').addEventListener('click', prevSlide);
